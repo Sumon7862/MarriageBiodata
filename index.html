@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="emerald" data-fontsize="medium">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>বিয়ের বায়োডাটা জেনারেটর | Marriage Biodata Generator</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            bangla: ['"Hind Siliguri"', 'sans-serif'],
+            english: ['Poppins', 'sans-serif'],
+            arabic: ['Amiri', 'serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- html2canvas & jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- ========== TOP BAR ========== -->
+  <header class="no-print sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-5 py-3 flex flex-wrap items-center gap-3 justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow">বি</div>
+        <div>
+          <h1 class="text-base sm:text-lg font-semibold bn leading-tight" data-i18n="appTitle">বিয়ের বায়োডাটা জেনারেটর</h1>
+          <p class="text-[11px] text-slate-500 en hidden sm:block">Marriage Biodata Generator</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Language -->
+        <button type="button" id="btn-lang" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition" aria-label="Toggle language">
+          <span class="bn">EN</span>
+        </button>
+
+        <!-- Font size -->
+        <div class="flex items-center rounded-lg border border-slate-200 overflow-hidden text-xs" role="group" aria-label="Font size">
+          <button type="button" data-fontsize="small" class="fontsize-btn px-2.5 py-1.5 hover:bg-slate-50">A−</button>
+          <button type="button" data-fontsize="medium" class="fontsize-btn px-2.5 py-1.5 bg-slate-100 font-semibold">A</button>
+          <button type="button" data-fontsize="large" class="fontsize-btn px-2.5 py-1.5 hover:bg-slate-50">A+</button>
+        </div>
+
+        <!-- Themes -->
+        <div class="flex items-center gap-1.5" role="group" aria-label="Color theme">
+          <button type="button" class="theme-swatch active" data-theme="emerald" style="background:#047857;color:#047857" title="Emerald Green" aria-label="Emerald Green"></button>
+          <button type="button" class="theme-swatch" data-theme="maroon" style="background:#9f1239;color:#9f1239" title="Royal Maroon" aria-label="Royal Maroon"></button>
+          <button type="button" class="theme-swatch" data-theme="navy" style="background:#1e3a8a;color:#1e3a8a" title="Navy Blue" aria-label="Navy Blue"></button>
+          <button type="button" class="theme-swatch" data-theme="rosegold" style="background:#c48978;color:#c48978" title="Rose Gold" aria-label="Rose Gold"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action toolbar -->
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-5 pb-3 flex flex-wrap gap-2">
+      <label class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+        <input type="checkbox" id="toggle-bismillah" class="rounded text-emerald-600 focus:ring-emerald-500" checked />
+        <span data-i18n="toggleBismillah">বিসমিল্লাহ</span>
+      </label>
+      <label class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+        <input type="checkbox" id="toggle-photo" class="rounded text-emerald-600 focus:ring-emerald-500" checked />
+        <span data-i18n="togglePhoto">ছবি দেখান</span>
+      </label>
+
+      <div class="flex-1"></div>
+
+      <button type="button" id="btn-sample" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition" data-i18n="loadSample">নমুনা ডেটা</button>
+      <button type="button" id="btn-reset" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition" data-i18n="resetAll">রিসেট</button>
+      <button type="button" id="btn-png" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm" data-i18n="downloadPng">PNG ডাউনলোড</button>
+      <button type="button" id="btn-pdf" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition shadow-sm" data-i18n="downloadPdf">PDF ডাউনলোড</button>
+      <button type="button" id="btn-print" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition" data-i18n="print">প্রিন্ট</button>
+    </div>
+  </header>
+
+  <!-- Privacy tip -->
+  <div class="no-print max-w-[1600px] mx-auto px-3 sm:px-5 pt-3">
+    <div class="privacy-banner rounded-xl px-4 py-2.5 text-sm text-amber-900 flex items-start gap-2" role="note">
+      <span class="text-lg leading-none mt-0.5" aria-hidden="true">🔒</span>
+      <p class="bn" data-i18n="privacyTip">গোপনীয়তা টিপ: NID নম্বর বা exact bank details বায়োডাটা-তে দিবেন না।</p>
+    </div>
+  </div>
+
+  <!-- Mobile tabs -->
+  <div class="no-print mobile-tabs sticky top-[108px] z-30 bg-slate-100 px-3 pt-3 lg:hidden">
+    <div class="flex rounded-xl bg-white border border-slate-200 p-1 shadow-sm">
+      <button type="button" class="mobile-tab flex-1 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white" data-tab="form" data-i18n="tabForm">ফর্ম</button>
+      <button type="button" class="mobile-tab flex-1 py-2 text-sm font-medium rounded-lg text-slate-600" data-tab="preview" data-i18n="tabPreview">প্রিভিউ</button>
+    </div>
+  </div>
+
+  <!-- ========== MAIN LAYOUT ========== -->
+  <main class="max-w-[1600px] mx-auto px-3 sm:px-5 py-4 grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+
+    <!-- LEFT: Form panel -->
+    <section id="panel-form" class="mobile-tab-panel active no-print space-y-3" aria-label="Biodata form">
+
+      <!-- 1. Personal Details -->
+      <div class="form-section open bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="personal">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="true">
+          <span class="font-semibold text-sm bn" data-i18n="secPersonal">১. ব্যক্তিগত তথ্য</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="docTitle" data-i18n="docTitle">বায়োডাটার শিরোনাম</label>
+              <input id="docTitle" name="docTitle" type="text" value="বিয়ের বায়োডাটা" class="form-input w-full rounded-lg border-emerald-200 border bg-emerald-50/40 px-3 py-2 text-sm font-semibold text-emerald-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" data-i18n-ph="docTitlePh" placeholder="বিয়ের বায়োডাটা" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="name" data-i18n="name">নাম</label>
+              <input id="name" name="name" type="text" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" autocomplete="name" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="nickname" data-i18n="nickname">ডাকনাম</label>
+              <input id="nickname" name="nickname" type="text" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="dob" data-i18n="dob">জন্ম তারিখ</label>
+              <input id="dob" name="dob" type="date" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="age" data-i18n="age">বয়স</label>
+              <input id="age" name="age" type="text" readonly class="w-full rounded-lg border-slate-200 border px-3 py-2 text-sm bg-slate-50 text-slate-600" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="birthplace" data-i18n="birthplace">জন্মস্থান</label>
+              <input id="birthplace" name="birthplace" type="text" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="height" data-i18n="height">উচ্চতা</label>
+              <input id="height" name="height" type="text" placeholder="৫'৬&quot;" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="weight" data-i18n="weight">ওজন</label>
+              <input id="weight" name="weight" type="text" placeholder="৬৫ কেজি" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="complexion" data-i18n="complexion">গায়ের রং</label>
+              <input id="complexion" name="complexion" type="text" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="bloodGroup" data-i18n="bloodGroup">রক্তের গ্রুপ</label>
+              <select id="bloodGroup" name="bloodGroup" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                <option value="">—</option>
+                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="religion" data-i18n="religion">ধর্ম / মাজহাব</label>
+              <input id="religion" name="religion" type="text" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="maritalStatus" data-i18n="maritalStatus">বৈবাহিক অবস্থা</label>
+              <select id="maritalStatus" name="maritalStatus" class="form-input w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                <option value="">—</option>
+                <option value="unmarried" data-i18n-option="unmarried">অবিবাহিত</option>
+                <option value="divorced" data-i18n-option="divorced">তালাকপ্রাপ্ত</option>
+                <option value="widowed" data-i18n-option="widowed">বিধবা/বিপত্নীক</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Education -->
+      <div class="form-section open bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="education">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="true">
+          <span class="font-semibold text-sm bn" data-i18n="secEducation">২. শিক্ষাগত যোগ্যতা</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4 space-y-4 pt-1">
+          <p class="text-[11px] text-slate-500" data-i18n="eduTitleHint">যোগ্যতার নাম নিজে লিখুন (যেমন: এসএসসি, দাখিল, অনার্স)। খালি সারি প্রিভিউতে দেখাবে না।</p>
+          <!-- Education row 1 -->
+          <fieldset class="border border-slate-100 rounded-xl p-3 space-y-2">
+            <input name="edu1_title" data-edu="edu1" data-field="title" type="text" class="form-input w-full rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-1.5 text-sm font-semibold text-emerald-800" data-i18n-ph="eduTitle" placeholder="যোগ্যতার নাম" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input name="edu1_institution" data-edu="edu1" data-field="institution" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="institution" placeholder="প্রতিষ্ঠান" />
+              <input name="edu1_subject" data-edu="edu1" data-field="subject" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="subject" placeholder="বিষয় / গ্রুপ" />
+              <input name="edu1_year" data-edu="edu1" data-field="year" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="year" placeholder="সাল" />
+              <input name="edu1_result" data-edu="edu1" data-field="result" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="result" placeholder="ফলাফল" />
+            </div>
+          </fieldset>
+          <!-- Education row 2 -->
+          <fieldset class="border border-slate-100 rounded-xl p-3 space-y-2">
+            <input name="edu2_title" data-edu="edu2" data-field="title" type="text" class="form-input w-full rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-1.5 text-sm font-semibold text-emerald-800" data-i18n-ph="eduTitle" placeholder="যোগ্যতার নাম" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input name="edu2_institution" data-edu="edu2" data-field="institution" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="institution" placeholder="প্রতিষ্ঠান" />
+              <input name="edu2_subject" data-edu="edu2" data-field="subject" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="subject" placeholder="বিষয় / গ্রুপ" />
+              <input name="edu2_year" data-edu="edu2" data-field="year" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="year" placeholder="সাল" />
+              <input name="edu2_result" data-edu="edu2" data-field="result" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="result" placeholder="ফলাফল" />
+            </div>
+          </fieldset>
+          <!-- Education row 3 -->
+          <fieldset class="border border-slate-100 rounded-xl p-3 space-y-2">
+            <input name="edu3_title" data-edu="edu3" data-field="title" type="text" class="form-input w-full rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-1.5 text-sm font-semibold text-emerald-800" data-i18n-ph="eduTitle" placeholder="যোগ্যতার নাম" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input name="edu3_institution" data-edu="edu3" data-field="institution" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="institution" placeholder="প্রতিষ্ঠান" />
+              <input name="edu3_subject" data-edu="edu3" data-field="subject" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="subject" placeholder="বিষয় / গ্রুপ" />
+              <input name="edu3_year" data-edu="edu3" data-field="year" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="year" placeholder="সাল" />
+              <input name="edu3_result" data-edu="edu3" data-field="result" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="result" placeholder="ফলাফল" />
+            </div>
+          </fieldset>
+          <!-- Education row 4 -->
+          <fieldset class="border border-slate-100 rounded-xl p-3 space-y-2">
+            <input name="edu4_title" data-edu="edu4" data-field="title" type="text" class="form-input w-full rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-1.5 text-sm font-semibold text-emerald-800" data-i18n-ph="eduTitle" placeholder="যোগ্যতার নাম" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input name="edu4_institution" data-edu="edu4" data-field="institution" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="institution" placeholder="প্রতিষ্ঠান" />
+              <input name="edu4_subject" data-edu="edu4" data-field="subject" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="subject" placeholder="বিষয় / গ্রুপ" />
+              <input name="edu4_year" data-edu="edu4" data-field="year" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="year" placeholder="সাল" />
+              <input name="edu4_result" data-edu="edu4" data-field="result" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm" data-i18n-ph="result" placeholder="ফলাফল" />
+            </div>
+          </fieldset>
+        </div>
+      </div>
+
+      <!-- 3. Profession -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="profession">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secProfession">৩. পেশা ও আয়</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="profession" data-i18n="profession">বর্তমান পেশা</label>
+              <input id="profession" name="profession" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="designation" data-i18n="designation">প্রতিষ্ঠান ও পদবী</label>
+              <input id="designation" name="designation" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="workplace" data-i18n="workplace">কর্মস্থল</label>
+              <input id="workplace" name="workplace" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="income" data-i18n="income">মাসিক আয়</label>
+              <input id="income" name="income" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="futurePlan" data-i18n="futurePlan">ভবিষ্যৎ পরিকল্পনা</label>
+              <textarea id="futurePlan" name="futurePlan" rows="2" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Address -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="address">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secAddress">৪. ঠিকানা</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="grid grid-cols-1 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="presentAddress" data-i18n="presentAddress">বর্তমান ঠিকানা</label>
+              <textarea id="presentAddress" name="presentAddress" rows="2" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="permanentAddress" data-i18n="permanentAddress">স্থায়ী ঠিকানা</label>
+              <textarea id="permanentAddress" name="permanentAddress" rows="2" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="houseType" data-i18n="houseType">বাড়ির ধরন</label>
+              <select id="houseType" name="houseType" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                <option value="">—</option>
+                <option value="own" data-i18n-option="ownHouse">নিজস্ব বাড়ি</option>
+                <option value="rented" data-i18n-option="rented">ভাড়া বাড়ি</option>
+                <option value="flat" data-i18n-option="flat">ফ্ল্যাট</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Family -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="family">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secFamily">৫. পারিবারিক তথ্য</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4 space-y-4 pt-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="fatherName" data-i18n="fatherName">পিতার নাম</label>
+              <input id="fatherName" name="fatherName" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="fatherProfession" data-i18n="fatherProfession">পিতার পেশা</label>
+              <input id="fatherProfession" name="fatherProfession" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="fatherStatus" data-i18n="aliveDeceased">পিতা জীবিত/মৃত</label>
+              <select id="fatherStatus" name="fatherStatus" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">—</option>
+                <option value="alive" data-i18n-option="alive">জীবিত</option>
+                <option value="deceased" data-i18n-option="deceased">মৃত</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="motherName" data-i18n="motherName">মাতার নাম</label>
+              <input id="motherName" name="motherName" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="motherProfession" data-i18n="motherProfession">মাতার পেশা</label>
+              <input id="motherProfession" name="motherProfession" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="motherStatus" data-i18n="aliveDeceased">মাতা জীবিত/মৃত</label>
+              <select id="motherStatus" name="motherStatus" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">—</option>
+                <option value="alive" data-i18n-option="alive">জীবিত</option>
+                <option value="deceased" data-i18n-option="deceased">মৃত</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Siblings -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-semibold text-slate-700" data-i18n="siblings">ভাই-বোন</h3>
+              <div class="flex gap-2">
+                <button type="button" id="btn-add-sibling" class="px-2.5 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" data-i18n="addRow">+ সারি যোগ</button>
+                <button type="button" id="btn-remove-sibling" class="px-2.5 py-1 text-xs rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100" data-i18n="removeRow">− সারি মুছুন</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+              <table class="w-full text-xs" id="siblings-table">
+                <thead class="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th class="px-2 py-2 text-left font-medium" data-i18n="sibName">নাম</th>
+                    <th class="px-2 py-2 text-left font-medium" data-i18n="sibRelation">সম্পর্ক</th>
+                    <th class="px-2 py-2 text-left font-medium" data-i18n="sibAge">বয়স</th>
+                    <th class="px-2 py-2 text-left font-medium" data-i18n="sibEducation">শিক্ষা</th>
+                    <th class="px-2 py-2 text-left font-medium" data-i18n="sibProfession">পেশা</th>
+                    <th class="px-2 py-2 text-left font-medium" data-i18n="sibMarital">বৈবাহিক</th>
+                  </tr>
+                </thead>
+                <tbody id="siblings-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1" for="unclesAunts" data-i18n="unclesAunts">চাচা/মামা/ফুফু/খালা (ঐচ্ছিক)</label>
+            <textarea id="unclesAunts" name="unclesAunts" rows="2" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="familyStatus" data-i18n="familyStatus">পারিবারিক অবস্থা</label>
+              <select id="familyStatus" name="familyStatus" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">—</option>
+                <option value="middle" data-i18n-option="middle">মধ্যবিত্ত</option>
+                <option value="upperMiddle" data-i18n-option="upperMiddle">উচ্চ মধ্যবিত্ত</option>
+                <option value="upper" data-i18n-option="upper">উচ্চবিত্ত</option>
+                <option value="lowerMiddle" data-i18n-option="lowerMiddle">নিম্ন মধ্যবিত্ত</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="propertyInfo" data-i18n="propertyInfo">সম্পত্তির তথ্য (ঐচ্ছিক)</label>
+              <input id="propertyInfo" name="propertyInfo" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Religion & Lifestyle -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="lifestyle">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secLifestyle">৬. ধর্ম ও জীবনযাপন</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="grid grid-cols-1 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="religiousPractice" data-i18n="religiousPractice">ধর্মীয় চর্চা</label>
+              <input id="religiousPractice" name="religiousPractice" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="habits" data-i18n="habits">ধূমপান / অন্যান্য অভ্যাস</label>
+              <input id="habits" name="habits" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="hobbies" data-i18n="hobbies">শখ</label>
+              <input id="hobbies" name="hobbies" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Expectations -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="expectations">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secExpectations">৭. প্রত্যাশা</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="expAge" data-i18n="expAge">বয়সসীমা</label>
+              <input id="expAge" name="expAge" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="expHeight" data-i18n="expHeight">উচ্চতা</label>
+              <input id="expHeight" name="expHeight" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="expEducation" data-i18n="expEducation">শিক্ষা</label>
+              <input id="expEducation" name="expEducation" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="expOther" data-i18n="expOther">অন্যান্য শর্ত</label>
+              <textarea id="expOther" name="expOther" rows="2" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Contact -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="contact">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secContact">৮. যোগাযোগ</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="guardianName" data-i18n="guardianName">অভিভাবকের নাম</label>
+              <input id="guardianName" name="guardianName" type="text" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="mobile" data-i18n="mobile">মোবাইল / হোয়াটসঅ্যাপ</label>
+              <input id="mobile" name="mobile" type="tel" inputmode="numeric" placeholder="01XXXXXXXXX" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" aria-describedby="mobile-error" />
+              <p id="mobile-error" class="field-error-msg hidden" data-i18n="mobileError">সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1" for="email" data-i18n="email">ইমেইল (ঐচ্ছিক)</label>
+              <input id="email" name="email" type="email" class="form-input w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Photo -->
+      <div class="form-section bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-section="photo" id="photo-section">
+        <button type="button" class="section-toggle w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition" aria-expanded="false">
+          <span class="font-semibold text-sm bn" data-i18n="secPhoto">৯. ছবি</span>
+          <svg class="section-chevron w-5 h-5 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="form-section-body px-4 pb-4">
+          <div class="photo-upload-card" id="photo-upload-card">
+            <div class="photo-preview-wrap">
+              <div class="photo-preview-box" id="photo-preview">
+                <div class="photo-empty-state">
+                  <svg class="photo-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 4.5h10.5A2.25 2.25 0 0119.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 17.25V6.75A2.25 2.25 0 016.75 4.5z"/>
+                    <circle cx="9" cy="9.5" r="1.25" fill="currentColor" stroke="none"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 16.5l4.2-4.2a1.2 1.2 0 011.7 0L15 16.4l1.3-1.3a1.2 1.2 0 011.7 0l1.5 1.5"/>
+                  </svg>
+                  <span class="text-[11px] text-slate-400 text-center" data-i18n="noPhoto">ছবি নেই</span>
+                </div>
+              </div>
+              <span class="photo-badge hidden" id="photo-badge" data-i18n="photoReady">প্রস্তুত</span>
+            </div>
+            <div class="photo-actions">
+              <label class="photo-upload-btn">
+                <input type="file" id="photo-input" accept="image/*" class="sr-only" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l-4 4m4-4l4 4"/></svg>
+                <span data-i18n="uploadPhoto">ছবি আপলোড</span>
+              </label>
+              <button type="button" id="btn-clear-photo" class="photo-clear-btn" data-i18n="clearPhoto">ছবি মুছুন</button>
+              <p class="photo-hint" data-i18n="photoHint">ছবি শুধু মেমোরিতে রাখা হয়; সার্ভারে আপলোড হয় না।</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: Live A4 Preview -->
+    <section id="panel-preview" class="mobile-tab-panel lg:sticky lg:top-28" aria-label="Biodata preview">
+      <div class="preview-scroll rounded-2xl p-3 sm:p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div id="preview-container" class="preview-scale-wrap space-y-0">
+          <!-- Pages rendered by script.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="no-print fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm shadow-lg" role="status" aria-live="polite"></div>
+
+  <!-- Loading overlay for export -->
+  <div id="export-overlay" class="no-print fixed inset-0 z-50 hidden bg-black/40 items-center justify-center">
+    <div class="bg-white rounded-2xl px-6 py-5 shadow-xl text-center">
+      <div class="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" style="border-width:3px"></div>
+      <p class="text-sm font-medium text-slate-700" data-i18n="exporting">প্রস্তুত করা হচ্ছে…</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
